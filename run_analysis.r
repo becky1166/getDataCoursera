@@ -1,6 +1,9 @@
 #Check working directory contains correct files
 dir()
 
+#Include needed libraries
+library(dplyr)
+
 #Load all data
 subject_train<-read.table("./train/subject_train.txt")
 X_train<-read.table("./train/X_train.txt",header=FALSE,stringsAsFactors=FALSE)
@@ -23,3 +26,15 @@ colnames(subject_train)<-"Subject"
 train<-cbind(X_train,y_train,subject_train)
 test<-cbind(X_test,y_test,subject_test)
 mergedData<-rbind(train,test)
+
+#Select relevant columns (mean, std, activity and subject)
+selectedData<-select(mergedData,contains("Mean"),contains("std"),Activity,Subject)
+
+#Label the activities
+selectedData$ActivityLabels<-factor(selectedData$Activity,levels=activity_labels$V1,labels=activity_labels$V2)
+
+#Calculate mean of each column per activity per subject
+outData<-aggregate(selectedData,by=list(Activity,Subject),FUN=mean,na.rm=TRUE)
+
+#write output file
+write.table(outData,file="tidyFile.txt",row.name=FALSE);
